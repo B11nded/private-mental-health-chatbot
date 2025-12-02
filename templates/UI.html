@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assistant UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      color: #f9fafb;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      height: 90vh;
+      max-height: 780px;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    /* Generic screen handling */
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* HOME SCREEN */
+    .home-header {
+      text-align: center;
+      margin-top: 40px;
+      margin-bottom: 32px;
+    }
+
+    .home-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .home-subtitle {
+      font-size: 0.95rem;
+      color: #9ca3af;
+    }
+
+    .home-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .icon-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(145deg, #1f2937, #0f172a);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+      color: #e5e7eb;
+      font-size: 0.85rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+    }
+
+    .icon-button span.icon {
+      font-size: 1.8rem;
+    }
+
+    .icon-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.75);
+      background: linear-gradient(145deg, #111827, #020617);
+    }
+
+    .icon-button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7);
+    }
+
+    .icon-button.message {
+      border: 1px solid rgba(96, 165, 250, 0.7);
+    }
+
+    .icon-button.call {
+      border: 1px solid rgba(251, 146, 60, 0.7);
+    }
+
+    /* CHAT SCREEN */
+
+    .chat-header {
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .chat-subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+
+    .chat-window {
+      flex: 1;
+      background: radial-gradient(circle at top left, #020617, #020617);
+      border-radius: 18px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      border: 1px solid rgba(55, 65, 81, 0.8);
+    }
+
+    .message-row {
+      display: flex;
+      margin-top: 4px;
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 8px 11px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      word-wrap: break-word;
+    }
+
+    .message-row.user .message-bubble {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border-bottom-right-radius: 2px;
+    }
+
+    .message-row.bot .message-bubble {
+      background: #111827;
+      border-bottom-left-radius: 2px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+    }
+
+    .chat-input-row {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-input-row input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .chat-input-row input::placeholder {
+      color: #6b7280;
+    }
+
+    .chat-input-row button {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 14px;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .chat-input-row button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.65);
+    }
+
+    .chat-input-row button:active {
+      transform: translateY(0px) scale(0.97);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.5);
+    }
+
+    /* Chat quit arrow button at bottom */
+    .chat-quit {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #020617;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    .chat-quit span {
+      font-size: 1.3rem;
+      transform: translateX(-1px); /* subtle tweak */
+    }
+
+    .chat-quit:hover {
+      background: #0b1120;
+      transform: translateX(-50%) translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8);
+    }
+
+    .chat-quit:active {
+      transform: translateX(-50%) translateY(1px) scale(0.97);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.75);
+    }
+
+    /* CALL SCREEN */
+
+    .call-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .call-status-text {
+      font-size: 1rem;
+      color: #e5e7eb;
+      text-align: center;
+    }
+
+    .call-subtext {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      text-align: center;
+      max-width: 260px;
+    }
+
+    .call-orb-wrapper {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .call-orb-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+      animation: orbPulse 1.8s ease-out infinite;
+    }
+
+    .call-orb {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, #1d4ed8, #0ea5e9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 45px rgba(37, 99, 235, 0.75);
+      animation: orbBeat 1.8s ease-in-out infinite;
+    }
+
+    .call-orb span {
+      font-size: 2.2rem;
+      transform: translateY(1px);
+    }
+
+    @keyframes orbPulse {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+      60% {
+        transform: scale(1.15);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1.15);
+        opacity: 0;
+      }
+    }
+
+    @keyframes orbBeat {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .call-hangup {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: radial-gradient(circle at top left, #dc2626, #b91c1c);
+      box-shadow: 0 14px 30px rgba(220, 38, 38, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+    }
+
+    .call-hangup span {
+      font-size: 1.6rem;
+      transform: rotate(135deg); /* tilt the phone a bit */
+    }
+
+    .call-hangup:hover {
+      transform: translateX(-50%) translateY(-1px);
+      box-shadow: 0 18px 36px rgba(220, 38, 38, 0.95);
+      filter: brightness(1.05);
+    }
+
+    .call-hangup:active {
+      transform: translateX(-50%) translateY(1px) scale(0.97);
+      box-shadow: 0 10px 24px rgba(185, 28, 28, 0.9);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- HOME SCREEN -->
+    <section id="screen-home" class="screen active">
+      <div class="home-header">
+        <div class="home-title">How can I help you?</div>
+        <div class="home-subtitle">Choose how you’d like to talk.</div>
+      </div>
+
+      <div class="home-buttons">
+        <button id="btn-message" class="icon-button message">
+          <span class="icon">💬</span>
+          <span>Message</span>
+        </button>
+
+        <button id="btn-call" class="icon-button call">
+          <span class="icon">📞</span>
+          <span>Call</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- CHAT SCREEN -->
+    <section id="screen-chat" class="screen">
+      <div class="chat-header">Chat with Assistant</div>
+      <div class="chat-subtitle">SMS-style messages. An AI can respond here later.</div>
+
+      <div id="chat-window" class="chat-window">
+        <div class="message-row bot">
+          <div class="message-bubble">
+            Hey! 👋 How can I help you today?
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Type a message..." />
+        <button id="chat-send">Send</button>
+      </div>
+
+      <!-- Quit button (arrow) -->
+      <button id="chat-quit" class="chat-quit" title="Quit chat">
+        <span>⬇</span>
+      </button>
+    </section>
+
+    <!-- CALL SCREEN -->
+    <section id="screen-call" class="screen">
+      <div class="call-container">
+        <div class="call-status-text">Talking with Assistant…</div>
+        <div class="call-subtext">
+          This orb can pulse while the AI “speaks”. You can hook audio / TTS here later.
+        </div>
+
+        <div class="call-orb-wrapper">
+          <div class="call-orb-pulse"></div>
+          <div class="call-orb">
+            <span>🎙️</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="call-hangup" class="call-hangup" title="Hang up">
+        <span>📞</span>
+      </button>
+    </section>
+
+  </div>
+
+  <script>
+    // Screen switching logic
+    const screenHome = document.getElementById("screen-home");
+    const screenChat = document.getElementById("screen-chat");
+    const screenCall = document.getElementById("screen-call");
+
+    const btnMessage = document.getElementById("btn-message");
+    const btnCall = document.getElementById("btn-call");
+    const chatQuit = document.getElementById("chat-quit");
+    const callHangup = document.getElementById("call-hangup");
+
+    function showScreen(screen) {
+      [screenHome, screenChat, screenCall].forEach(s => s.classList.remove("active"));
+      screen.classList.add("active");
+    }
+
+    btnMessage.addEventListener("click", () => showScreen(screenChat));
+    btnCall.addEventListener("click", () => showScreen(screenCall));
+    chatQuit.addEventListener("click", () => showScreen(screenHome));
+    callHangup.addEventListener("click", () => showScreen(screenHome));
+
+    // Very simple fake chat behavior (placeholder for real AI)
+    const chatWindow = document.getElementById("chat-window");
+    const chatInput = document.getElementById("chat-input");
+    const chatSend = document.getElementById("chat-send");
+
+    function appendMessage(text, from = "user") {
+      const row = document.createElement("div");
+      row.className = "message-row " + (from === "user" ? "user" : "bot");
+
+      const bubble = document.createElement("div");
+      bubble.className = "message-bubble";
+      bubble.textContent = text;
+
+      row.appendChild(bubble);
+      chatWindow.appendChild(row);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function sendUserMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      appendMessage(text, "user");
+      chatInput.value = "";
+
+      // Fake AI response – replace this with real API call later
+      setTimeout(() => {
+        appendMessage("This is where an AI reply would go. 🤖", "bot");
+      }, 700);
+    }
+
+    chatSend.addEventListener("click", sendUserMessage);
+
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendUserMessage();
+      }
+    });
+  </script>
+</body>
+</html>
