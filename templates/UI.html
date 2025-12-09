@@ -452,6 +452,8 @@
     const screenChat = document.getElementById("screen-chat");
     const screenCall = document.getElementById("screen-call");
 
+    let historyText = ""; 
+
     const btnMessage = document.getElementById("btn-message");
     const btnCall = document.getElementById("btn-call");
     const chatQuit = document.getElementById("chat-quit");
@@ -486,35 +488,37 @@
     }
 
     async function sendUserMessage() {
-    const text = chatInput.value.trim();
-    if (!text) return;
+  const text = chatInput.value.trim();
+  if (!text) return;
 
-    appendMessage(text, "user");
-    chatInput.value = "";
+  appendMessage(text, "user");
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: text }),
-      });
+  historyText += `User: ${text}\n`;
 
-      if (!response.ok) {
-        appendMessage("Sorry, something went wrong on the server.", "bot");
-        return;
-      }
+  chatInput.value = "";
 
-      const data = await response.json();
-      const botReply = data.reply || "Sorry, I didn't understand that.";
-      appendMessage(botReply, "bot");
-    } catch (err) {
-      console.error(err);
-      appendMessage("Network error. Please try again.", "bot");
-    }
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: text,
+        history: historyText
+      }),
+    });
+
+    const data = await response.json();
+    const botReply = data.reply || "Sorry, I didn't understand that.";
+
+    appendMessage(botReply, "bot");
+
+    historyText += `Assistant: ${botReply}\n`;
+  } catch (err) {
+    appendMessage("Network error 😞", "bot");
   }
-
+}
   chatSend.addEventListener("click", sendUserMessage);
   chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
