@@ -448,7 +448,6 @@
   </div>
 
   <script>
-    // Screen switching logic
     const screenHome = document.getElementById("screen-home");
     const screenChat = document.getElementById("screen-chat");
     const screenCall = document.getElementById("screen-call");
@@ -486,27 +485,43 @@
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function sendUserMessage() {
-      const text = chatInput.value.trim();
-      if (!text) return;
+    async function sendUserMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
 
-      appendMessage(text, "user");
-      chatInput.value = "";
+    appendMessage(text, "user");
+    chatInput.value = "";
 
-      // Fake AI response – replace this with real API call later
-      setTimeout(() => {
-        appendMessage("This is where an AI reply would go. 🤖", "bot");
-      }, 700);
-    }
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: text }),
+      });
 
-    chatSend.addEventListener("click", sendUserMessage);
-
-    chatInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendUserMessage();
+      if (!response.ok) {
+        appendMessage("Sorry, something went wrong on the server.", "bot");
+        return;
       }
-    });
-  </script>
+
+      const data = await response.json();
+      const botReply = data.reply || "Sorry, I didn't understand that.";
+      appendMessage(botReply, "bot");
+    } catch (err) {
+      console.error(err);
+      appendMessage("Network error. Please try again.", "bot");
+    }
+  }
+
+  chatSend.addEventListener("click", sendUserMessage);
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendUserMessage();
+    }
+  });
+</script>
 </body>
 </html>

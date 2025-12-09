@@ -1,22 +1,23 @@
 from flask import Flask, render_template, request, jsonify
+from AI import respond
 
 app = Flask(__name__)
 
-# Serve your main page
 @app.route("/")
 def home():
     return render_template("UI.html")
 
-# Simple API endpoint for the chat (you can replace this with real AI later)
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.get_json()
     user_message = data.get("message", "")
 
-    # For now, just echo back something simple
-    fake_reply = f"You said: {user_message}. (This is where AI will reply later 🤖)"
+    if not user_message:
+        return jsonify({"error": "No message provided."}), 400
+    
+    bot_reply = respond(user_message)
 
-    return jsonify({"reply": fake_reply})
+    return jsonify({"reply": bot_reply})
 
 if __name__ == "__main__":
     app.run(debug=True)
