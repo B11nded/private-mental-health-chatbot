@@ -466,13 +466,28 @@
 
     btnMessage.addEventListener("click", () => showScreen(screenChat));
     btnCall.addEventListener("click", () => showScreen(screenCall));
-    chatQuit.addEventListener("click", () => showScreen(screenHome));
-    callHangup.addEventListener("click", () => showScreen(screenHome));
+    chatQuit.addEventListener("click", () => {
+      resetChat();
+      showScreen(screenHome);
+    });
+    callHangup.addEventListener("click", () => {
+      resetChat();
+      showScreen(screenHome);
+    });
 
     // Very simple fake chat behavior (placeholder for real AI)
     const chatWindow = document.getElementById("chat-window");
     const chatInput = document.getElementById("chat-input");
     const chatSend = document.getElementById("chat-send");
+
+    function resetChat() {
+      historyText = ""; // reset memory
+      chatWindow.innerHTML = ""; // clear messages on screen
+      chatInput.value = ""; // clear input box
+
+      // Add a fresh greeting message again if you want:
+      appendMessage("Hey! 👋 How can I help you today?", "bot");
+      }
 
     function appendMessage(text, from = "user") {
       const row = document.createElement("div");
