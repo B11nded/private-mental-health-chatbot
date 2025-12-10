@@ -429,7 +429,7 @@
       <div class="call-container">
         <div class="call-status-text">Talking with Assistant…</div>
         <div class="call-subtext">
-          This orb can pulse while the AI “speaks”. You can hook audio / TTS here later.
+          Press and hold space to talk release when finished
         </div>
 
         <div class="call-orb-wrapper">
@@ -448,92 +448,114 @@
   </div>
 
   <script>
-    const screenHome = document.getElementById("screen-home");
-    const screenChat = document.getElementById("screen-chat");
-    const screenCall = document.getElementById("screen-call");
+  const screenHome = document.getElementById("screen-home");
+  const screenChat = document.getElementById("screen-chat");
+  const screenCall = document.getElementById("screen-call");
 
-    let historyText = ""; 
+  let historyText = ""; 
 
-    const btnMessage = document.getElementById("btn-message");
-    const btnCall = document.getElementById("btn-call");
-    const chatQuit = document.getElementById("chat-quit");
-    const callHangup = document.getElementById("call-hangup");
+  const btnMessage = document.getElementById("btn-message");
+  const btnCall = document.getElementById("btn-call");
+  const chatQuit = document.getElementById("chat-quit");
+  const callHangup = document.getElementById("call-hangup");
 
-    function showScreen(screen) {
-      [screenHome, screenChat, screenCall].forEach(s => s.classList.remove("active"));
-      screen.classList.add("active");
-    }
-
-    btnMessage.addEventListener("click", () => showScreen(screenChat));
-    btnCall.addEventListener("click", () => showScreen(screenCall));
-    chatQuit.addEventListener("click", () => {
-      resetChat();
-      showScreen(screenHome);
-    });
-    callHangup.addEventListener("click", () => {
-      resetChat();
-      showScreen(screenHome);
-    });
-
-    // Very simple fake chat behavior (placeholder for real AI)
-    const chatWindow = document.getElementById("chat-window");
-    const chatInput = document.getElementById("chat-input");
-    const chatSend = document.getElementById("chat-send");
-
-    function resetChat() {
-      historyText = ""; // reset memory
-      chatWindow.innerHTML = ""; // clear messages on screen
-      chatInput.value = ""; // clear input box
-
-      // Add a fresh greeting message again if you want:
-      appendMessage("Hey! 👋 How can I help you today?", "bot");
-      }
-
-    function appendMessage(text, from = "user") {
-      const row = document.createElement("div");
-      row.className = "message-row " + (from === "user" ? "user" : "bot");
-
-      const bubble = document.createElement("div");
-      bubble.className = "message-bubble";
-      bubble.textContent = text;
-
-      row.appendChild(bubble);
-      chatWindow.appendChild(row);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    async function sendUserMessage() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-
-  appendMessage(text, "user");
-
-  historyText += `User: ${text}\n`;
-
-  chatInput.value = "";
-
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: text,
-        history: historyText
-      }),
-    });
-
-    const data = await response.json();
-    const botReply = data.reply || "Sorry, I didn't understand that.";
-
-    appendMessage(botReply, "bot");
-
-    historyText += `Assistant: ${botReply}\n`;
-  } catch (err) {
-    appendMessage("Network error 😞", "bot");
+  function showScreen(screen) {
+    [screenHome, screenChat, screenCall].forEach(s => s.classList.remove("active"));
+    screen.classList.add("active");
   }
-}
+
+  btnMessage.addEventListener("click", () => showScreen(screenChat));
+  btnCall.addEventListener("click", () => showScreen(screenCall));
+  chatQuit.addEventListener("click", () => {
+    resetChat();
+    showScreen(screenHome);
+  });
+  callHangup.addEventListener("click", () => {
+    resetChat();
+    showScreen(screenHome);
+  });
+  
+  const chatWindow = document.getElementById("chat-window");
+  const chatInput = document.getElementById("chat-input");
+  const chatSend = document.getElementById("chat-send");
+
+  function speak(text) {
+    if (!("speechSynthesis" in window)) {
+      console.warn("Speech synthesis not supported in this browser.");
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.lang = "en-US";
+
+    // stop any previous speech and start new one
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function resetChat() {
+    historyText = "";        
+    chatWindow.innerHTML = "";   
+    chatInput.value = "";         
+
+    // stop any ongoing speech
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Add a fresh greeting message again:
+    appendMessage("Hey! 👋 How can I help you today?", "bot");
+  }
+
+  function appendMessage(text, from = "user") {
+    const row = document.createElement("div");
+    row.className = "message-row " + (from === "user" ? "user" : "bot");
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.textContent = text;
+
+    row.appendChild(bubble);
+    chatWindow.appendChild(row);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  async function sendUserMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    appendMessage(text, "user");
+
+    historyText += `User: ${text}\n`;
+
+    chatInput.value = "";
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: text,
+          history: historyText
+        }),
+      });
+
+      const data = await response.json();
+      const botReply = data.reply || "Sorry, I didn't understand that.";
+
+      appendMessage(botReply, "bot");
+
+      historyText += `Assistant: ${botReply}\n`;
+
+      speak(botReply);
+    } catch (err) {
+      appendMessage("Network error 😞", "bot");
+    }
+  }
+
   chatSend.addEventListener("click", sendUserMessage);
   chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -541,6 +563,60 @@
       sendUserMessage();
     }
   });
+
+  // 🎤 Speech-to-text using SPACEBAR
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = false;
+
+// Only allow voice input while on the CALL screen
+function onCallScreen() {
+  return screenCall.classList.contains("active");
+}
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.addEventListener("result", (event) => {
+    const transcript = event.results[0][0].transcript;
+    chatInput.value = transcript;
+    sendUserMessage();  // send voice message automatically
+  });
+
+  recognition.addEventListener("end", () => {
+    isListening = false;
+  });
+} else {
+  console.warn("Speech recognition not supported in this browser.");
+}
+
+// START listening when holding SPACE
+document.addEventListener("keydown", (e) => {
+  if (!onCallScreen()) return;
+  if (e.code !== "Space") return;
+  if (isListening) return; // ignore repeated keydown events
+
+  e.preventDefault();
+  isListening = true;
+  recognition.start();
+});
+
+// STOP listening when releasing SPACE
+document.addEventListener("keyup", (e) => {
+  if (!onCallScreen()) return;
+  if (e.code !== "Space") return;
+
+  e.preventDefault();
+  if (isListening) {
+    recognition.stop();
+    isListening = false;
+  }
+});
+
 </script>
 </body>
 </html>
