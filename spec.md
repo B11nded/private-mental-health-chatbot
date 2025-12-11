@@ -8,7 +8,7 @@
 
 1. Conversational back-and-forth through both text message (sms-style) and voice.
 2. Easy to use UI that is simple and easily understandable 
-3. AI makes sure to alert the user they are not a health professional and explains the proper routes to take
+3. AI makes sure to alert the user they are not a health professional and explains the proper routes to take if asked
 4. Careful consideration to prevent the AI from storing any information and preventing anyone from seeing conversations used through this AI
 
 ### Success Criteria

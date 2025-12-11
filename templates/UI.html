@@ -185,7 +185,7 @@
     }
 
     .chat-input-row input {
-      flex: 1;
+      flex: 0 1 80%;
       padding: 10px 12px;
       border-radius: 999px;
       border: 1px solid rgba(75, 85, 99, 0.9);
@@ -222,39 +222,27 @@
       box-shadow: 0 6px 14px rgba(37, 99, 235, 0.5);
     }
 
-    .chat-quit {
-      position: absolute;
-      bottom: 20px;
-      left: 75%;
-      transform: translateX(-50%);
+    .quit-inline {
+      padding: 6px 10px;
       border-radius: 999px;
       border: 1px solid rgba(75, 85, 99, 0.9);
-      width: 42px;
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background: #020617;
+      color: #e5e7eb;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      font-size: 1.1rem;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+      transition: 0.15s ease;
     }
 
-    .chat-quit span {
-      font-size: 1.3rem;
-      transform: translateX(-1px); /* subtle tweak */
-    }
-
-    .chat-quit:hover {
+    .quit-inline:hover {
       background: #0b1120;
-      transform: translateX(-50%) translateY(-1px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8);
+      transform: translateY(-1px);
     }
 
-    .chat-quit:active {
-      transform: translateX(-50%) translateY(1px) scale(0.97);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.75);
+    .quit-inline:active {
+      transform: translateY(1px) scale(0.96);
     }
+
 
     /* CALL SCREEN */
 
@@ -413,11 +401,9 @@
       <div class="chat-input-row">
         <input id="chat-input" type="text" placeholder="Type a message..." />
         <button id="chat-send">Send</button>
+        <button id="chat-quit" class="quit-inline">⬇</button>
       </div>
 
-      <button id="chat-quit" class="chat-quit" title="Quit chat">
-        <span>⬇</span>
-      </button>
     </section>
 
     <section id="screen-call" class="screen">
