@@ -361,7 +361,7 @@
 
     .call-hangup span {
       font-size: 1.6rem;
-      transform: rotate(135deg); /* tilt the phone a bit */
+      transform: rotate(135deg); 
     }
 
     .call-hangup:hover {
@@ -380,11 +380,10 @@
 <body>
   <div class="app">
 
-    <!-- HOME SCREEN -->
     <section id="screen-home" class="screen active">
       <div class="home-header">
         <div class="home-title">How can I help you?</div>
-        <div class="home-subtitle">Choose how you’d like to talk.</div>
+        <div class="home-subtitle"> Information will be temporarily stored to reply then discarded. Do not give out any identifying info.</div>
       </div>
 
       <div class="home-buttons">
@@ -400,7 +399,6 @@
       </div>
     </section>
 
-    <!-- CHAT SCREEN -->
     <section id="screen-chat" class="screen">
       <div class="chat-header">Chat with Assistant</div>
       <div class="chat-subtitle">SMS-style messages. An AI can respond here later.</div>
@@ -418,13 +416,11 @@
         <button id="chat-send">Send</button>
       </div>
 
-      <!-- Quit button (arrow) -->
       <button id="chat-quit" class="chat-quit" title="Quit chat">
         <span>⬇</span>
       </button>
     </section>
 
-    <!-- CALL SCREEN -->
     <section id="screen-call" class="screen">
       <div class="call-container">
         <div class="call-status-text">Talking with Assistant…</div>
@@ -474,25 +470,27 @@
     resetChat();
     showScreen(screenHome);
   });
-  
+
   const chatWindow = document.getElementById("chat-window");
   const chatInput = document.getElementById("chat-input");
   const chatSend = document.getElementById("chat-send");
 
   function speak(text) {
-    if (!("speechSynthesis" in window)) {
-      console.warn("Speech synthesis not supported in this browser.");
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.lang = "en-US";
+  const cleanedText = text.replace(
+    /[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu,
+    ""
+  );
 
-    // stop any previous speech and start new one
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  }
+  if (!("speechSynthesis" in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(cleanedText);
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.lang = "en-US";
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+}
 
   function resetChat() {
     historyText = "";        
@@ -564,13 +562,11 @@
     }
   });
 
-  // 🎤 Speech-to-text using SPACEBAR
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isListening = false;
 
-// Only allow voice input while on the CALL screen
 function onCallScreen() {
   return screenCall.classList.contains("active");
 }
@@ -584,7 +580,7 @@ if (SpeechRecognition) {
   recognition.addEventListener("result", (event) => {
     const transcript = event.results[0][0].transcript;
     chatInput.value = transcript;
-    sendUserMessage();  // send voice message automatically
+    sendUserMessage();  
   });
 
   recognition.addEventListener("end", () => {
@@ -594,18 +590,16 @@ if (SpeechRecognition) {
   console.warn("Speech recognition not supported in this browser.");
 }
 
-// START listening when holding SPACE
 document.addEventListener("keydown", (e) => {
   if (!onCallScreen()) return;
   if (e.code !== "Space") return;
-  if (isListening) return; // ignore repeated keydown events
+  if (isListening) return; 
 
   e.preventDefault();
   isListening = true;
   recognition.start();
 });
 
-// STOP listening when releasing SPACE
 document.addEventListener("keyup", (e) => {
   if (!onCallScreen()) return;
   if (e.code !== "Space") return;
