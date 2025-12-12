@@ -23,11 +23,12 @@ A simple chatbot website that will start on a simple screen and then you can cho
 1. Clone this repository
 2. Ensure Python 3.13.9 or higher is installed
 3. Run app.py and go to the provided link
+4. Make a .env file and put in your OpenAI API key
 
 ## Usage
 
 1. Run the program
-2. Will change once I decide for now I would like to talk to you more about the best method for this.
+2. Follow the provided link
 
 ## Credits
 
