@@ -433,6 +433,7 @@
   const screenChat = document.getElementById("screen-chat");
   const screenCall = document.getElementById("screen-call");
 
+  //plain conversation history is sent to python
   let historyText = ""; 
 
   const btnMessage = document.getElementById("btn-message");
@@ -440,6 +441,7 @@
   const chatQuit = document.getElementById("chat-quit");
   const callHangup = document.getElementById("call-hangup");
 
+  //handles the ability to switch between home, chat, and call screens
   function showScreen(screen) {
     [screenHome, screenChat, screenCall].forEach(s => s.classList.remove("active"));
     screen.classList.add("active");
@@ -575,6 +577,7 @@ if (SpeechRecognition) {
   console.warn("Speech recognition not supported in this browser.");
 }
 
+//Push-to-talk uses spacebar
 document.addEventListener("keydown", (e) => {
   if (!onCallScreen()) return;
   if (e.code !== "Space") return;
